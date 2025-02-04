@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Analiza y graba tu respuesta</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            text-align: center;
+            padding: 20px;
+        }
+        #video-container {
+            display: flex;
+            justify-content: center;
+        }
+        video {
+            border-radius: 10px;
+            border: 3px solid #007bff;
+            width: 90%;
+            max-width: 600px;
+        }
+        .btn-custom {
+            width: 200px;
+            font-size: 18px;
+            margin: 5px;
+        }
+        #questions {
+            width: 90%;
+            max-width: 600px;
+            height: 120px;
+            margin: 10px auto;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #dc3545;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 class="mb-4">📹 Analiza y graba tu respuesta en video</h1>
+
+    <p class="fw-bold">Después de ver el episodio Infection Part I de la serie Chicago Fire, analiza las siguientes preguntas y respondelas mirando a la cámara.</p>
+    <p class="fw-bold">Duración recomendada: 2 a 3 minutos.</p>
+    <textarea id="questions" class="form-control" readonly></textarea>
+
+    <div id="video-container" class="mt-3">
+        <video id="video" autoplay muted></video> 
+    </div>
+
+    <div id="timer">00:00</div> <!-- Cronómetro -->
+
+    <div class="d-flex justify-content-center mt-4">
+        <button id="startBtn" class="btn btn-success btn-custom">▶️ Iniciar Grabación</button>
+        <button id="stopBtn" class="btn btn-danger btn-custom" disabled>⏹️ Detener Grabación</button>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let stream;
+        let timerInterval; // Variable para el cronómetro
+        let seconds = 0;
+
+        const videoElement = document.getElementById("video");
+        const startButton = document.getElementById("startBtn");
+        const stopButton = document.getElementById("stopBtn");
+        const questionsTextArea = document.getElementById("questions");
+        const timerElement = document.getElementById("timer");
+
+        // Función para actualizar el cronómetro
+        function updateTimer() {
+            seconds++;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            timerElement.textContent = `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        // Obtener preguntas de la API al cargar la página
+        window.onload = function() {
+            fetch("/generate_questions")
+                .then(response => response.json())
+                .then(data => {
+                    if (data.questions) {
+                        questionsTextArea.value = data.questions;
+                    } else {
+                        questionsTextArea.value = "No se pudieron obtener preguntas.";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al obtener preguntas:", error);
+                    questionsTextArea.value = "❌ Error al obtener preguntas.";
+                });
+        };
+
+        // Configurar acceso a la cámara y micrófono
+        navigator.mediaDevices.getUserMedia({
+            video: { width: { ideal: 9999 }, height: { ideal: 9999 } },
+            audio: { echoCancellation: true, noiseSuppression: true }
+        })
+        .then(mediaStream => {
+            stream = mediaStream;
+            videoElement.srcObject = stream;
+            videoElement.muted = true;
+
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: "video/mp4" });
+
+                // Convertir el video a Base64
+                const reader = new FileReader();
+                reader.readAsDataURL(blob);
+                reader.onloadend = () => {
+                    const base64data = reader.result.split(",")[1];
+
+                    // Enviar video y preguntas a Flask
+                    fetch("/upload", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ video: base64data, questions: questionsTextArea.value })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 🔹 Cerrar la cámara después de grabar
+                        stream.getTracks().forEach(track => track.stop());
+                        videoElement.srcObject = null;
+
+                        // 🔹 Redirigir a success.html
+                        window.location.href = "/success";
+                    })
+                    .catch(error => {
+                        alert("❌ Error al enviar el video.");
+                    });
+                };
+            };
+
+            startButton.onclick = () => {
+                recordedChunks = [];
+                mediaRecorder.start();
+                startButton.disabled = true;
+                stopButton.disabled = false;
+
+                // Iniciar el cronómetro
+                seconds = 0;
+                timerElement.textContent = "00:00";
+                timerInterval = setInterval(updateTimer, 1000);
+            };
+
+            stopButton.onclick = () => {
+                mediaRecorder.stop();
+                startButton.disabled = false;
+                stopButton.disabled = true;
+
+                // Detener el cronómetro
+                clearInterval(timerInterval);
+            };
+        })
+        .catch(error => {
+            console.error("Error al acceder a la cámara/micrófono.", error);
+            alert("Error al acceder a la cámara/micrófono.");
+        });
+
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <footer class="mt-5">
+        <p class="text-center text-muted">
+            <a href="/privacy" target="_blank">Aviso de Privacidad</a>
+        </p>
+    </footer>
+    
+</body>
+</html>

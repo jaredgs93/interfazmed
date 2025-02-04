@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:5000"  # Cambia el puerto a 5001
+      - "8000:8000"
+    volumes:
+      - ./src/uploaded_files:/app/uploaded_files
+      - ./src/templates:/app/templates
+    restart: always
