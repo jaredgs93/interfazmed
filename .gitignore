@@ -1,0 +1,15 @@
+# Ignore .env files
+*.env
+
+# Ignore Python cache files and folders
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore macOS temporary files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.fseventsd
