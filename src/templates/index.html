@@ -19,22 +19,34 @@
             border-radius: 10px;
             border: 3px solid #007bff;
             width: 90%;
-            max-width: 600px;
+            max-width: 1000px;
         }
         .btn-custom {
             width: 200px;
             font-size: 18px;
             margin: 5px;
         }
-        #questions {
+
+        #student_name {
             width: 90%;
             max-width: 600px;
-            height: 120px;
+            height: 40px;
             margin: 10px auto;
             font-size: 16px;
             padding: 10px;
             border-radius: 5px;
         }
+
+        #questions {
+            width: 90%;
+            max-width: 1000px;
+            height: 100px;
+            margin: 10px auto;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
         #timer {
             font-size: 24px;
             font-weight: bold;
@@ -47,7 +59,10 @@
 
     <h1 class="mb-4">📹 Analiza y graba tu respuesta en video</h1>
 
-    <p class="fw-bold">Después de ver el episodio Infection Part I de la serie Chicago Fire, analiza las siguientes preguntas y respondelas mirando a la cámara.</p>
+    <p class="fw-bold">Introduce tu nombre:</p>
+    <input type="text" id="student_name" class="form-control" placeholder="Ejemplo: Juan Pérez" required>
+
+    <p class="fw-bold">Después de ver el episodio Infection Part I de la serie Chicago Fire, analiza las siguientes preguntas y respóndelas mirando a la cámara.</p>
     <p class="fw-bold">Duración recomendada: 2 a 3 minutos.</p>
     <textarea id="questions" class="form-control" readonly></textarea>
 
@@ -66,7 +81,7 @@
         let mediaRecorder;
         let recordedChunks = [];
         let stream;
-        let timerInterval; // Variable para el cronómetro
+        let timerInterval;
         let seconds = 0;
 
         const videoElement = document.getElementById("video");
@@ -74,6 +89,7 @@
         const stopButton = document.getElementById("stopBtn");
         const questionsTextArea = document.getElementById("questions");
         const timerElement = document.getElementById("timer");
+        const studentNameInput = document.getElementById("student_name");
 
         // Función para actualizar el cronómetro
         function updateTimer() {
@@ -121,34 +137,42 @@
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: "video/mp4" });
 
-                // Convertir el video a Base64
-                const reader = new FileReader();
-                reader.readAsDataURL(blob);
-                reader.onloadend = () => {
-                    const base64data = reader.result.split(",")[1];
+                // Crear FormData y agregar el video, preguntas y nombre del estudiante
+                const formData = new FormData();
+                formData.append("file", blob, "video.mp4");
+                formData.append("questions", questionsTextArea.value);
+                formData.append("student_name", studentNameInput.value.trim());
 
-                    // Enviar video y preguntas a Flask
-                    fetch("/upload", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ video: base64data, questions: questionsTextArea.value })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        // 🔹 Cerrar la cámara después de grabar
+                // Enviar datos al servidor
+                fetch("/upload", {
+                    method: "POST",
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        // Cerrar la cámara después de grabar
                         stream.getTracks().forEach(track => track.stop());
                         videoElement.srcObject = null;
 
-                        // 🔹 Redirigir a success.html
+                        // Redirigir a success.html
                         window.location.href = "/success";
-                    })
-                    .catch(error => {
+                    } else {
                         alert("❌ Error al enviar el video.");
-                    });
-                };
+                    }
+                })
+                .catch(error => {
+                    console.error("Error al enviar el video:", error);
+                    alert("❌ Error al enviar el video.");
+                });
             };
 
             startButton.onclick = () => {
+                if (studentNameInput.value.trim() === "") {
+                    alert("❌ Debes ingresar tu nombre antes de comenzar la grabación.");
+                    return;
+                }
+
                 recordedChunks = [];
                 mediaRecorder.start();
                 startButton.disabled = true;

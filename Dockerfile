@@ -1,21 +1,21 @@
+# Usar Python 3.9 como base
 FROM python:3.9-slim
 
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copiar el archivo Procfile
-COPY Procfile /app/
-
-# Copiar requirements.txt e instalar dependencias
-COPY requirements.txt /app/
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install honcho
-
-# Copiar el resto del código
+# Copiar el contenido del proyecto
 COPY ./src /app/
 
-# Exponer los puertos necesarios
-EXPOSE 5000 8000
+# Instalar dependencias
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Usar honcho para manejar Flask y FastAPI
-CMD ["honcho", "start"]
+# Copiar los certificados SSL
+COPY ./src/ssl /app/ssl
+
+# Exponer el puerto 8000
+EXPOSE 8000
+
+# Ejecutar el servidor con HTTPS
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000", "--ssl-keyfile", "/app/ssl/local-key.pem", "--ssl-certfile", "/app/ssl/local-cert.pem"]
