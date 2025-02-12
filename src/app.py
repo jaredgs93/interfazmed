@@ -50,12 +50,17 @@ async def privacy(request: Request):
 async def success(request: Request):
     return templates.TemplateResponse("success.html", {"request": request})
 
+# Cargamos el .txt con la transcipción del video (con utf-8)
+with open("transcription.txt", "r", encoding="utf-8") as f:
+    transcription = f.read()
+
 @app.get("/generate_questions")
 async def generate_questions():
     completion = client.chat.completions.create(
-            messages=[{'role': 'system', 'content': """Actúa como un profesor de medicina. Haz tres preguntas a los estudiantes de la clase sobre el episodio Infection, Part I (S5E4) de la serie Chicago Fire.
+            messages=[{'role': 'system', 'content': """Actúa como un profesor de medicina. Haz tres preguntas (en español) a los estudiantes de la clase sobre el resumen del episodio Derailed (S01E01) de la serie Chicago Med.
                                                           Las preguntas deben ir enfocadas en qué harían los estudiantes en diversas situaciones médicas y cómo resolverían los problemas que se presentan en el episodio.
-                                                          La finalidad es evaluar diversas habilidades del estudiante, tales como toma de decisiones, negociación, liderazgo, creatividad."""}],
+                                                          La finalidad es evaluar diversas habilidades del estudiante, tales como toma de decisiones, negociación, liderazgo, creatividad.
+                                                        Para apoyarte, aquí tienes la transcripción en inglés del resumen del episodio:""" + transcription}],
             model='gpt-3.5-turbo'
         )
     
