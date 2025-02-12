@@ -7,34 +7,21 @@ import base64
 from pathlib import Path
 import datetime
 from decouple import config
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import requests
+
+# Configurar token y chat_id de Telegram
+TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
+CHAT_ID = config('CHAT_ID')
+
+print("TOKEN:", TELEGRAM_BOT_TOKEN)
+print("CHAT ID:", CHAT_ID)
 
 
-def enviar_correo(destinatario, asunto, cuerpo):
-    remitente = config("EMAIL_USER")
-    password = config("EMAIL_PASSWORD")  # Use an application password if you use Gmail.
-
-    # Configure the message
-    mensaje = MIMEMultipart()
-    mensaje["From"] = remitente
-    mensaje["To"] = destinatario
-    mensaje["Subject"] = asunto
-
-    # Add the message body
-    mensaje.attach(MIMEText(cuerpo, "plain"))
-    # Send the mail
-    try:
-        with smtplib.SMTP("smtp.gmail.com", 587) as servidor:
-            servidor.starttls()
-            servidor.login(remitente, password)
-            servidor.sendmail(remitente, destinatario, mensaje.as_string())
-            return True
-    except Exception as e:
-        print(f"Error sending email: {e}")
-        return False
-
+def send_telegram_notification(student_name):
+    message = f"🎥 {student_name} ha subido un nuevo video!"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": message}
+    requests.post(url, data=payload)
 
 # Configurar API de OpenAI
 client = OpenAI(api_key=config('OPENAI_API_KEY'))
@@ -94,12 +81,11 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         with open(questions_path, "w") as qf:
             qf.write(questions)
         
-        enviar_correo(
-                "jaredgs93@gmail.com",
-                "Nuevo video enviado al servidor",
-                f"Se ha recibido un nuevo video en el servidor de {student_name} ({timestamp})",
-                
-            )
+        # Enviar notificación a Telegram
+        try:
+            send_telegram_notification(student_name)
+        except Exception as e:
+            print("Error al enviar notificación a Telegram", e)
 
         return {"message": "Video y preguntas guardados correctamente"}
 
