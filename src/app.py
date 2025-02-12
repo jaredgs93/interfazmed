@@ -7,6 +7,34 @@ import base64
 from pathlib import Path
 import datetime
 from decouple import config
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+
+def enviar_correo(destinatario, asunto, cuerpo):
+    remitente = config("EMAIL_USER")
+    password = config("EMAIL_PASSWORD")  # Use an application password if you use Gmail.
+
+    # Configure the message
+    mensaje = MIMEMultipart()
+    mensaje["From"] = remitente
+    mensaje["To"] = destinatario
+    mensaje["Subject"] = asunto
+
+    # Add the message body
+    mensaje.attach(MIMEText(cuerpo, "plain"))
+    # Send the mail
+    try:
+        with smtplib.SMTP("smtp.gmail.com", 587) as servidor:
+            servidor.starttls()
+            servidor.login(remitente, password)
+            servidor.sendmail(remitente, destinatario, mensaje.as_string())
+            return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
+
 
 # Configurar API de OpenAI
 client = OpenAI(api_key=config('OPENAI_API_KEY'))
@@ -65,6 +93,13 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         questions_path = upload_dir / "questions.txt"
         with open(questions_path, "w") as qf:
             qf.write(questions)
+        
+        enviar_correo(
+                "jaredgs93@gmail.com",
+                "Nuevo video enviado al servidor",
+                f"Se ha recibido un nuevo video en el servidor de {student_name} ({timestamp})",
+                
+            )
 
         return {"message": "Video y preguntas guardados correctamente"}
 
