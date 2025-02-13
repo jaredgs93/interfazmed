@@ -22,7 +22,8 @@ print("CHAT ID:", CHAT_ID)
 def send_telegram_notification(student_data):
     student_name = student_data["name"]
     student_career = student_data["career"]
-    message = f"🎥 {student_name} de la carrera de {student_career} ha subido un nuevo video!"
+    student_semester = student_data["semester"]
+    message = f"🎥 {student_name} de la carrera de {student_career} (semestre {student_semester}) ha subido un nuevo video!"
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
