@@ -16,10 +16,9 @@
             justify-content: center;
         }
         video {
-            border-radius: 10px;
-            border: 3px solid #007bff;
-            width: 90%;
-            max-width: 1000px;
+            
+            width: 100%;
+            max-width: 100%;
         }
         .btn-custom {
             width: 200px;
@@ -27,7 +26,7 @@
             margin: 5px;
         }
 
-        #student_name {
+        #student_name #student_age{
             width: 90%;
             max-width: 600px;
             height: 40px;
@@ -59,16 +58,59 @@
 
     <h1 class="mb-4">📹 Analiza y graba tu respuesta en video</h1>
 
-    <p class="fw-bold">Introduce tu nombre:</p>
-    <input type="text" id="student_name" class="form-control" placeholder="Ejemplo: Juan Pérez" required>
+    <div class="container mt-3">
+        <!-- Fila 1: Nombre y Edad -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="fw-bold">Introduce tu nombre:</p>
+            <input type="text" id="student_name" class="form-control" placeholder="Ejemplo: Juan Pérez" required>
+          </div>
+          <div class="col-md-6">
+            <p class="fw-bold">Introduce tu edad:</p>
+            <input type="number" id="student_age" class="form-control" min="12" value="18" required>
+          </div>
+        </div>
+      
+        <!-- Fila 2: Género y Carrera -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <p class="fw-bold">Selecciona tu género:</p>
+            <select id="student_gender" class="form-control" required>
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Otro">Otro</option>
+              <option value="Prefiero no decirlo">Prefiero no decirlo</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <p class="fw-bold">Selecciona tu carrera:</p>
+            <select id="student_career" class="form-control" required>
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="Medico cirujano">Medico cirujano</option>
+              <option value="Nutrición">Nutrición</option>
+              <option value="Rehabilitación">Rehabilitación</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
 
     <p class="fw-bold">Después de ver el resumen del episodio Derailed de la serie Chicago Med, analiza las siguientes preguntas y respóndelas mirando a la cámara.</p>
     <p class="fw-bold">Duración recomendada: 2 a 3 minutos.</p>
-    <textarea id="questions" class="form-control" readonly></textarea>
-
-    <div id="video-container" class="mt-3">
-        <video id="video" autoplay muted></video> 
-    </div>
+    <div class="container mt-3">
+        <div class="row">
+          <div class="col-md-6">
+            <p class="fw-bold">Preguntas para responder:</p>
+            <textarea id="questions" class="form-control" readonly style="height: 380px;"></textarea>
+          </div>
+          <div class="col-md-6 d-flex justify-content-center">
+            <div id="video-container">
+              <video id="video" autoplay muted style="width:100%; max-width:100%;"></video>
+            </div>
+          </div>
+        </div>
+      </div>
 
     <div id="timer">00:00</div> <!-- Cronómetro -->
 
@@ -90,6 +132,9 @@
         const questionsTextArea = document.getElementById("questions");
         const timerElement = document.getElementById("timer");
         const studentNameInput = document.getElementById("student_name");
+        const studentAgeInput = document.getElementById("student_age");
+        const studentGenderInput = document.getElementById("student_gender");
+        const studentCareerInput = document.getElementById("student_career");
 
         // Función para actualizar el cronómetro
         function updateTimer() {
@@ -136,40 +181,42 @@
 
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: "video/mp4" });
-
-                // Crear FormData y agregar el video, preguntas y nombre del estudiante
                 const formData = new FormData();
                 formData.append("file", blob, "video.mp4");
                 formData.append("questions", questionsTextArea.value);
                 formData.append("student_name", studentNameInput.value.trim());
+                formData.append("student_age", studentAgeInput.value.trim());
+                formData.append("student_gender", studentGenderInput.value);
+                formData.append("student_career", studentCareerInput.value.trim());
 
-                // Enviar datos al servidor
-                fetch("/upload", {
-                    method: "POST",
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.message) {
-                        // Cerrar la cámara después de grabar
-                        stream.getTracks().forEach(track => track.stop());
-                        videoElement.srcObject = null;
+                console.log("Contenido del FormData:");
+                for (const [key, value] of formData.entries()) {
+                    console.log(`${key}:`, value);
+                }
 
-                        // Redirigir a success.html
-                        window.location.href = "/success";
-                    } else {
+                fetch("/upload", { method: "POST", body: formData })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            stream.getTracks().forEach(track => track.stop());
+                            videoElement.srcObject = null;
+                            window.location.href = "/success";
+                        } else {
+                            alert("❌ Error al enviar el video.");
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error al enviar el video:", error);
                         alert("❌ Error al enviar el video.");
-                    }
-                })
-                .catch(error => {
-                    console.error("Error al enviar el video:", error);
-                    alert("❌ Error al enviar el video.");
-                });
+                    });
             };
 
             startButton.onclick = () => {
-                if (studentNameInput.value.trim() === "") {
-                    alert("❌ Debes ingresar tu nombre antes de comenzar la grabación.");
+                if (!studentNameInput.value.trim() || 
+                    !studentAgeInput.value.trim() || 
+                    !studentGenderInput.value || 
+                    !studentCareerInput.value.trim()) {
+                    alert("❌ Debes completar todos los campos antes de comenzar la grabación.");
                     return;
                 }
 

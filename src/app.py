@@ -8,6 +8,8 @@ from pathlib import Path
 import datetime
 from decouple import config
 import requests
+import uvicorn
+import json
 
 # Configurar token y chat_id de Telegram
 TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
@@ -17,8 +19,10 @@ print("TOKEN:", TELEGRAM_BOT_TOKEN)
 print("CHAT ID:", CHAT_ID)
 
 
-def send_telegram_notification(student_name):
-    message = f"🎥 {student_name} ha subido un nuevo video!"
+def send_telegram_notification(student_data):
+    student_name = student_data["name"]
+    student_career = student_data["career"]
+    message = f"🎥 {student_name} de la carrera de {student_career} ha subido un nuevo video!"
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
@@ -57,7 +61,7 @@ with open("transcription.txt", "r", encoding="utf-8") as f:
 @app.get("/generate_questions")
 async def generate_questions():
     completion = client.chat.completions.create(
-            messages=[{'role': 'system', 'content': """Actúa como un profesor de medicina. Haz tres preguntas (en español) a los estudiantes de la clase sobre el resumen del episodio Derailed (S01E01) de la serie Chicago Med.
+            messages=[{'role': 'system', 'content': """Actúa como un profesor de medicina. Haz tres preguntas (en español) dirigidas a un estudiante de medicina sobre el resumen del episodio Derailed (S01E01) de la serie Chicago Med.
                                                           Las preguntas deben ir enfocadas en qué harían los estudiantes en diversas situaciones médicas y cómo resolverían los problemas que se presentan en el episodio.
                                                           La finalidad es evaluar diversas habilidades del estudiante, tales como toma de decisiones, negociación, liderazgo, creatividad.
                                                         Para apoyarte, aquí tienes la transcripción en inglés del resumen del episodio:""" + transcription}],
@@ -70,7 +74,7 @@ async def generate_questions():
 
 # API para recibir videos y preguntas
 @app.post("/upload")
-async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...)):
+async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...), student_age: str = Form(...), student_gender : str = Form(...), student_career: str = Form(...)):
     try:
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_student_name = "_".join(student_name.split()).lower()  # Reemplaza espacios por guiones bajos
@@ -86,9 +90,22 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         with open(questions_path, "w") as qf:
             qf.write(questions)
         
+        # Crear un diccionario con los datos del estudiante
+        student_data = {
+            "name": student_name,
+            "age": student_age,
+            "gender": student_gender,
+            "career": student_career
+        }
+
+        # Guardar los datos del estudiante en un archivo JSON
+        student_data_path = upload_dir / "student_data.json"
+        with open(student_data_path, "w") as sf:
+            json.dump(student_data, sf, ensure_ascii= False)
+        
         # Enviar notificación a Telegram
         try:
-            send_telegram_notification(student_name)
+            send_telegram_notification(student_data)
         except Exception as e:
             print("Error al enviar notificación a Telegram", e)
 
@@ -99,5 +116,4 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
