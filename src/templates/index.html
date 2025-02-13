@@ -59,38 +59,42 @@
     <h1 class="mb-4">📹 Analiza y graba tu respuesta en video</h1>
 
     <div class="container mt-3">
-        <!-- Fila 1: Nombre y Edad -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p class="fw-bold">Introduce tu nombre:</p>
+        <!-- Fila 1: Nombre, Edad, Género -->
+        <div class="row mb-3 g-2">
+          <div class="col-md-4">
+            <label class="fw-bold">Nombre:</label>
             <input type="text" id="student_name" class="form-control" placeholder="Ejemplo: Juan Pérez" required>
           </div>
-          <div class="col-md-6">
-            <p class="fw-bold">Introduce tu edad:</p>
-            <input type="number" id="student_age" class="form-control" min="12" value="18" required>
+          <div class="col-md-4">
+            <label class="fw-bold">Edad:</label>
+            <input type="number" id="student_age" class="form-control" min="12" placeholder="Ejemplo: 22" required>
           </div>
-        </div>
-      
-        <!-- Fila 2: Género y Carrera -->
-        <div class="row mb-3">
-          <div class="col-md-6">
-            <p class="fw-bold">Selecciona tu género:</p>
+          <div class="col-md-4">
+            <label class="fw-bold">Género:</label>
             <select id="student_gender" class="form-control" required>
-              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="" disabled selected>Selecciona</option>
               <option value="Masculino">Masculino</option>
               <option value="Femenino">Femenino</option>
               <option value="Otro">Otro</option>
               <option value="Prefiero no decirlo">Prefiero no decirlo</option>
             </select>
           </div>
+        </div>
+    
+        <!-- Fila 2: Carrera y Semestre -->
+        <div class="row mb-3 g-2">
           <div class="col-md-6">
-            <p class="fw-bold">Selecciona tu carrera:</p>
+            <label class="fw-bold">Carrera:</label>
             <select id="student_career" class="form-control" required>
-              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="" disabled selected>Selecciona tu carrera</option>
               <option value="Medico cirujano">Medico cirujano</option>
               <option value="Nutrición">Nutrición</option>
               <option value="Rehabilitación">Rehabilitación</option>
             </select>
+          </div>
+          <div class="col-md-6">
+            <label class="fw-bold">Semestre:</label>
+            <input type="number" id="student_semester" class="form-control" placeholder="Ejemplo: 5" min="1" max="12" required>
           </div>
         </div>
       </div>
@@ -135,6 +139,7 @@
         const studentAgeInput = document.getElementById("student_age");
         const studentGenderInput = document.getElementById("student_gender");
         const studentCareerInput = document.getElementById("student_career");
+        const studentSemesterInput = document.getElementById("student_semester");
 
         // Función para actualizar el cronómetro
         function updateTimer() {
@@ -188,6 +193,7 @@
                 formData.append("student_age", studentAgeInput.value.trim());
                 formData.append("student_gender", studentGenderInput.value);
                 formData.append("student_career", studentCareerInput.value.trim());
+                formData.append("student_semester", studentSemesterInput.value.trim());
 
                 console.log("Contenido del FormData:");
                 for (const [key, value] of formData.entries()) {
@@ -215,7 +221,8 @@
                 if (!studentNameInput.value.trim() || 
                     !studentAgeInput.value.trim() || 
                     !studentGenderInput.value || 
-                    !studentCareerInput.value.trim()) {
+                    !studentCareerInput.value.trim() ||
+                    !studentSemesterInput.value.trim()) {
                     alert("❌ Debes completar todos los campos antes de comenzar la grabación.");
                     return;
                 }

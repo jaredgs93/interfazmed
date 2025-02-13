@@ -74,7 +74,7 @@ async def generate_questions():
 
 # API para recibir videos y preguntas
 @app.post("/upload")
-async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...), student_age: str = Form(...), student_gender : str = Form(...), student_career: str = Form(...)):
+async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...), student_age: str = Form(...), student_gender : str = Form(...), student_career: str = Form(...), student_semester: str = Form(...)):
     try:
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_student_name = "_".join(student_name.split()).lower()  # Reemplaza espacios por guiones bajos
@@ -95,7 +95,8 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
             "name": student_name,
             "age": student_age,
             "gender": student_gender,
-            "career": student_career
+            "career": student_career,
+            "semester": student_semester,
         }
 
         # Guardar los datos del estudiante en un archivo JSON
