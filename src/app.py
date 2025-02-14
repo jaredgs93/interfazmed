@@ -10,6 +10,7 @@ from decouple import config
 import requests
 import uvicorn
 import json
+import subprocess
 
 # Configurar token y chat_id de Telegram
 TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
@@ -27,6 +28,33 @@ def send_telegram_notification(student_data):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
+
+import subprocess
+
+def convert_to_mp4(input_path, output_path):
+    """Convierte un video .webm a .mp4 usando ffmpeg."""
+    try:
+        command = [
+            "ffmpeg",
+            "-i", input_path,           # Archivo de entrada
+            "-c:v", "libx264",         # Códec de video
+            "-c:a", "aac",             # Códec de audio
+            "-strict", "experimental",  # Modo experimental para AAC
+            "-movflags", "+faststart",  # Optimiza el archivo para streaming
+            output_path
+        ]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+        if result.returncode == 0:
+            print(f"✅ Video convertido a .mp4: {output_path}")
+            return True
+        else:
+            print(f"❌ Error al convertir video: {result.stderr}")
+            return False
+    except Exception as e:
+        print(f"⚠️ Error ejecutando ffmpeg: {e}")
+        return False
+
 
 # Configurar API de OpenAI
 client = OpenAI(api_key=config('OPENAI_API_KEY'))
@@ -82,10 +110,19 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         upload_dir = BASE_DIR / f"upload_{safe_student_name}_{timestamp}"
         upload_dir.mkdir(exist_ok=True)
 
-        video_filename = f"{safe_student_name}_{timestamp}.mp4"
-        video_path = upload_dir / video_filename
-        with open(video_path, "wb") as buffer:
+        # Guardar video en .webm
+        webm_path = upload_dir / "video.webm"
+        with open(webm_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+
+        # Convertir a .mp4
+        mp4_path = upload_dir / f"{safe_student_name}_{timestamp}.mp4"
+        if convert_to_mp4(str(webm_path), str(mp4_path)):
+            print(f"✅ Video convertido y guardado en {mp4_path}")
+            webm_path.unlink()  # Eliminar archivo .webm original
+        else:
+            raise HTTPException(status_code=500, detail="Error al convertir el video a .mp4")
+
 
         questions_path = upload_dir / "questions.txt"
         with open(questions_path, "w") as qf:

@@ -177,6 +177,12 @@
             videoElement.muted = true;
 
             mediaRecorder = new MediaRecorder(stream);
+
+            const options = { mimeType: 'video/webm; codecs=vp9,opus' };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm';
+            }
+            mediaRecorder = new MediaRecorder(stream, options);
             
             mediaRecorder.ondataavailable = event => {
                 if (event.data.size > 0) {
