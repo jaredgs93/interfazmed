@@ -115,13 +115,13 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         with open(webm_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # Convertir a .mp4
+        """# Convertir a .mp4
         mp4_path = upload_dir / f"{safe_student_name}_{timestamp}.mp4"
         if convert_to_mp4(str(webm_path), str(mp4_path)):
             print(f"✅ Video convertido y guardado en {mp4_path}")
             webm_path.unlink()  # Eliminar archivo .webm original
         else:
-            raise HTTPException(status_code=500, detail="Error al convertir el video a .mp4")
+            raise HTTPException(status_code=500, detail="Error al convertir el video a .mp4")"""
 
 
         questions_path = upload_dir / "questions.txt"

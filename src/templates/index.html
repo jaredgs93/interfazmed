@@ -26,7 +26,7 @@
             margin: 5px;
         }
 
-        #student_name #student_age{
+        #student_name #student_age #student_career{
             width: 90%;
             max-width: 600px;
             height: 40px;
@@ -90,7 +90,9 @@
               <option value="Medico cirujano">Medico cirujano</option>
               <option value="Nutrición">Nutrición</option>
               <option value="Rehabilitación">Rehabilitación</option>
+              <option value="Otra">Otra</option>
             </select>
+            <input type="text" id="other_career" class="form-control mt-2" placeholder="Especifica tu carrera" style="display: none;">
           </div>
           <div class="col-md-6">
             <label class="fw-bold">Semestre:</label>
@@ -139,7 +141,18 @@
         const studentAgeInput = document.getElementById("student_age");
         const studentGenderInput = document.getElementById("student_gender");
         const studentCareerInput = document.getElementById("student_career");
+        const otherCareerInput = document.getElementById("other_career");
         const studentSemesterInput = document.getElementById("student_semester");
+        
+        studentCareerInput.addEventListener("change", () => {
+            if (studentCareerInput.value === "Otra") {
+                otherCareerInput.style.display = "block";
+                otherCareerInput.setAttribute("required", "true");
+            } else {
+                otherCareerInput.style.display = "none";
+                otherCareerInput.removeAttribute("required");
+            }
+        });
 
         // Función para actualizar el cronómetro
         function updateTimer() {
@@ -199,6 +212,7 @@
                 formData.append("student_age", studentAgeInput.value.trim());
                 formData.append("student_gender", studentGenderInput.value);
                 formData.append("student_career", studentCareerInput.value.trim());
+                formData.append("student_career", studentCareerInput.value === "Otra" ? otherCareerInput.value.trim() : studentCareerInput.value.trim());
                 formData.append("student_semester", studentSemesterInput.value.trim());
 
                 console.log("Contenido del FormData:");

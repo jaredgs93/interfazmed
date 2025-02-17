@@ -1,8 +1,8 @@
 # Usar Python 3.9 como base
 FROM python:3.9-slim
 
-RUN apt-get update && apt-get install -y \
-    ffmpeg 
+#RUN apt-get update && apt-get install -y \
+#    ffmpeg 
 
 # Establecer el directorio de trabajo
 WORKDIR /app
