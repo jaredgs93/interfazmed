@@ -83,7 +83,7 @@
     
         <!-- Fila 2: Carrera y Semestre -->
         <div class="row mb-3 g-2">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="fw-bold">Carrera:</label>
             <select id="student_career" class="form-control" required>
               <option value="" disabled selected>Selecciona tu carrera</option>
@@ -94,9 +94,13 @@
             </select>
             <input type="text" id="other_career" class="form-control mt-2" placeholder="Especifica tu carrera" style="display: none;">
           </div>
-          <div class="col-md-6">
+          <div class="col-md-4">
             <label class="fw-bold">Semestre:</label>
             <input type="number" id="student_semester" class="form-control" placeholder="Ejemplo: 5" min="1" max="12" required>
+          </div>
+          <div class="col-md-4">
+            <label class="fw-bold">Correo electrónico:</label>
+            <input type="text" id="student_email" class="form-control" placeholder="Ejemplo: axxxxx@alumnos.uady.mx" required>
           </div>
         </div>
       </div>
@@ -143,6 +147,7 @@
         const studentCareerInput = document.getElementById("student_career");
         const otherCareerInput = document.getElementById("other_career");
         const studentSemesterInput = document.getElementById("student_semester");
+        const studentEmailInput = document.getElementById("student_email");
         
         studentCareerInput.addEventListener("change", () => {
             if (studentCareerInput.value === "Otra") {
@@ -214,6 +219,7 @@
                 formData.append("student_career", studentCareerInput.value.trim());
                 formData.append("student_career", studentCareerInput.value === "Otra" ? otherCareerInput.value.trim() : studentCareerInput.value.trim());
                 formData.append("student_semester", studentSemesterInput.value.trim());
+                formData.append("student_email", studentEmailInput.value.trim());
 
                 console.log("Contenido del FormData:");
                 for (const [key, value] of formData.entries()) {

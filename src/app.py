@@ -103,11 +103,11 @@ async def generate_questions():
 
 # API para recibir videos y preguntas
 @app.post("/upload")
-async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...), student_age: str = Form(...), student_gender : str = Form(...), student_career: str = Form(...), student_semester: str = Form(...)):
+async def upload_video(file: UploadFile = Form(...), questions: str = Form(...), student_name: str = Form(...), student_age: str = Form(...), student_gender : str = Form(...), student_career: str = Form(...), student_semester: str = Form(...), student_email: str = Form(...)):
     try:
         timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         safe_student_name = "_".join(student_name.split()).lower()  # Reemplaza espacios por guiones bajos
-        upload_dir = BASE_DIR / f"upload_{safe_student_name}_{timestamp}"
+        upload_dir = BASE_DIR / f"{safe_student_name}_{timestamp}"
         upload_dir.mkdir(exist_ok=True)
 
         # Guardar video en .webm
@@ -135,6 +135,7 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
             "gender": student_gender,
             "career": student_career,
             "semester": student_semester,
+            "email":student_email
         }
 
         # Guardar los datos del estudiante en un archivo JSON
