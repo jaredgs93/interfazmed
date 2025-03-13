@@ -20,8 +20,7 @@ MedicalSkillsRecorder/
 │   │── feedback.csv           # User feedback
 │── src/                      # Source code
 │   │── app.py                 # Main application script
-│   │── .env                   # Environment variables
-│   │── .env                   # Environment variables
+│   │── .env                   # Environment variables (NOT INCLUDED)
 │   │── transcription.txt      # Transcription of the video which is used in the prompt for the questions generation
 │   │── ssl/                   # SSL certificates (for local HTTPS)
 │   └── uploaded_files/        # Storage for recorded videos
@@ -38,6 +37,14 @@ MedicalSkillsRecorder/
 ### **1️⃣ Prerequisites**
 - Docker installed
 - Python 3.8+ (if running manually)
+- An **OpenAI API Key** for accessing OpenAI services.
+
+### How to Get Your OpenAI API Key
+
+1. Go to the [OpenAI API Keys](https://platform.openai.com/account/api-keys) page.
+2. Sign in or create an OpenAI account if you don’t already have one.
+3. Click "Create new secret key" to generate a new API key.
+4. Copy the API key and paste it into the `OPENAI_API_KEY` field in your `.env` file.
 
 ### **2️⃣ Running with Docker**
 ```bash
