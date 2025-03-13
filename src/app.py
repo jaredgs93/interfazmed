@@ -13,13 +13,11 @@ import json
 import subprocess
 
 # Configurar token y chat_id de Telegram
-TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
-CHAT_ID = config('CHAT_ID')
-
-print("TOKEN:", TELEGRAM_BOT_TOKEN)
-print("CHAT ID:", CHAT_ID)
+#TELEGRAM_BOT_TOKEN = config('TELEGRAM_BOT_TOKEN')
+#CHAT_ID = config('CHAT_ID')
 
 
+"""
 def send_telegram_notification(student_data):
     student_name = student_data["name"]
     student_career = student_data["career"]
@@ -28,7 +26,7 @@ def send_telegram_notification(student_data):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": message}
     requests.post(url, data=payload)
-
+"""
 import subprocess
 
 def convert_to_mp4(input_path, output_path):
@@ -142,14 +140,15 @@ async def upload_video(file: UploadFile = Form(...), questions: str = Form(...),
         student_data_path = upload_dir / "student_data.json"
         with open(student_data_path, "w") as sf:
             json.dump(student_data, sf, ensure_ascii= False)
-        
+        """
         # Enviar notificación a Telegram
         try:
             send_telegram_notification(student_data)
         except Exception as e:
             print("Error al enviar notificación a Telegram", e)
-
+        """
         return {"message": "Video y preguntas guardados correctamente"}
+        
 
     except Exception as e:
         print(e, "Error")
