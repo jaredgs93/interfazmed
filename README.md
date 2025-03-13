@@ -21,7 +21,8 @@ MedicalSkillsRecorder/
 │── src/                      # Source code
 │   │── app.py                 # Main application script
 │   │── .env                   # Environment variables
-│   │── templates/             # HTML templates
+│   │── .env                   # Environment variables
+│   │── transcription.txt      # Transcription of the video which is used in the prompt for the questions generation
 │   │── ssl/                   # SSL certificates (for local HTTPS)
 │   └── uploaded_files/        # Storage for recorded videos
 │── docker-compose.yml        # Docker configuration
